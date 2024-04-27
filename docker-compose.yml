@@ -1,0 +1,24 @@
+
+services:
+  web:
+    build: ./my_guardian_backend
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes: 
+      - ./my_guardian_backend/:/usr/src/my_guardian_backend/
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./.env.dev
+    depends_on:
+      - db
+  db:
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=my_guardian_db
+
+volumes:
+  postgres_data:
