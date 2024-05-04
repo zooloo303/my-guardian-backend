@@ -8,8 +8,8 @@ class BungieClient:
     def __init__(self):
         load_dotenv()
         self.client = Client(
-            bungie_client_id=os.getenv('OAUTH_CLIENT_ID'),
-            bungie_client_secret=os.getenv('OAUTH_CLIENT_SECRET'),
+            bungie_client_id=os.getenv('CLIENT_ID'),
+            bungie_client_secret=os.getenv('CLIENT_SECRET'),
             bungie_token=os.getenv('BUNGIE_API_KEY'),
         )
 
@@ -29,12 +29,12 @@ class BungieClient:
             user_profile = await self.client.api.get_profile(
                 destiny_membership_id=membership_id,
                 membership_type=membership_type,
-                components=["Profiles", "Characters"]
+                components=["Profiles", "Characters", "CharacterEquipment"]
             )
             
             for character_id, character_data in user_profile.characters.data.items():
                 character_info = {
-                    "Character_ID": character_id,
+                    "id": character_id,
                     "Class_Type": getattr(character_data.class_type, 'name', 'Class Type not found'),
                     "Race_Type": getattr(character_data.race_type, 'name', 'Race Type not found'),
                     "Light_Level": getattr(character_data, 'light', 'Light Level not available')
