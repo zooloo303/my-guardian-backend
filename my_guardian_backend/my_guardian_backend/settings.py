@@ -88,8 +88,9 @@ INSTALLED_APPS = [
 
     'allauth',
     'allauth.account',
-    'allauth.socialaccount',
-    'allauth.socialaccount.providers.oauth2',
+ 
+    'social_django',
+    'djoser',
 
     'dj_rest_auth',
     'dj_rest_auth.registration',
@@ -99,21 +100,6 @@ INSTALLED_APPS = [
     'guardian',
     'useraccount',
 ]
-
-
-CLIENT_ID = os.environ.get('CLIENT_ID')
-CLIENT_SECRET = os.environ.get('CLIENT_SECRET')
-BUNGIE_API_KEY = os.environ.get('BUNGIE_API_KEY')
-
-SOCIALACCOUNT_PROVIDERS = {
-    'bungie': {
-        'APP': {
-            'client_id': CLIENT_ID,
-            'secret': CLIENT_SECRET,
-            'key': BUNGIE_API_KEY
-        }
-    }
-}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -163,9 +149,17 @@ DATABASES = {
 }
 
 AUTHENTICATION_BACKENDS = (
+    'social_core.backends.bungie.BungieOAuth2',
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
 )
+
+DJOSER = {
+    'SOCIAL_AUTH_ALLOWED_REDIRECT_URIS': os.environ.get("REDIRECT_URLS").split(','),
+}
+
+SOCIAL_AUTH_BUNGIE_KEY = os.environ.get("CLIENT_ID")
+SOCIAL_AUTH_BUNGIE_SECRET = os.environ.get("CLIENT_SECRET")
 
 
 # Password validation

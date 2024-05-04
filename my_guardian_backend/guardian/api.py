@@ -5,7 +5,6 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from .models import Guardian
 from .bungie_client import BungieClient
-from .bungie_public import BungieClient as BungiePublicClient
 from .serializers import CompleteDataSerializer, GuardianListSerializer, CharacterSerializer
 
 @api_view(['GET'])
