@@ -154,13 +154,14 @@ AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend',
 )
 
+SOCIAL_AUTH_BUNGIE_API_KEY = os.environ.get("BUNGIE_API_KEY")
+SOCIAL_AUTH_BUNGIE_KEY = os.environ.get("CLIENT_ID")
+SOCIAL_AUTH_BUNGIE_SECRET = os.environ.get("CLIENT_SECRET")
+# SOCIAL_AUTH_BUNGIE_ORIGIN = '...'
+
 DJOSER = {
     'SOCIAL_AUTH_ALLOWED_REDIRECT_URIS': os.environ.get("REDIRECT_URLS").split(','),
 }
-
-SOCIAL_AUTH_BUNGIE_KEY = os.environ.get("CLIENT_ID")
-SOCIAL_AUTH_BUNGIE_SECRET = os.environ.get("CLIENT_SECRET")
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators

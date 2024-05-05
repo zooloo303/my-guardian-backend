@@ -4,8 +4,9 @@ from djoser.social.views import ProviderAuthView
 class CustomProviderAuthView(ProviderAuthView):
 
     def post(self, request, *args, **kwargs):
+        print(f"this is the request: {request}")
         response = super().post(request, *args, **kwargs)
-
+        print(f"this is the response: {response}")
         if response.status_code == 201:
             access_token = response.data.get('access')
             refresh_token = response.data.get('refresh')
