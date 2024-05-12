@@ -23,9 +23,6 @@ class CustomAccountManager(BaseUserManager):
 
     def create_user(self, email, username, first_name, password, **other_fields):
 
-        if not email:
-            raise ValueError(_('You must provide an email address'))
-
         email = self.normalize_email(email)
         user = self.model(email=email, username=username,
                           first_name=first_name, **other_fields)
@@ -36,7 +33,7 @@ class CustomAccountManager(BaseUserManager):
 
 class NewUser(AbstractBaseUser, PermissionsMixin):
 
-    email = models.EmailField(_('email address'), unique=True)
+    email = models.EmailField(_('email address'), unique=True, null=True, blank=True)
     username = models.CharField(max_length=150, unique=True)
     first_name = models.CharField(max_length=150, blank=True)
     start_date = models.DateTimeField(default=timezone.now)
@@ -47,8 +44,8 @@ class NewUser(AbstractBaseUser, PermissionsMixin):
 
     objects = CustomAccountManager()
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'first_name']
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = ['first_name']
 
     def __str__(self):
         return self.username

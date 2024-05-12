@@ -6,7 +6,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
     """
     Currently unused in preference of the below.
     """
-    email = serializers.EmailField(required=True)
+    email = serializers.EmailField(required=False)
     username = serializers.CharField(required=True)
     password = serializers.CharField(min_length=8, write_only=True)
 
