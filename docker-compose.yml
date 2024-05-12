@@ -1,10 +1,9 @@
-
 services:
   web:
-    build: ./my_guardian_backend
+    build: .
     command: python manage.py runserver 0.0.0.0:8000
     volumes: 
-      - ./my_guardian_backend/:/usr/src/my_guardian_backend/
+      - .:/usr/src/my_guardian_backend/
     ports:
       - "8000:8000"
     env_file:
