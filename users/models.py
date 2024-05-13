@@ -41,6 +41,8 @@ class NewUser(AbstractBaseUser, PermissionsMixin):
         'about'), max_length=500, blank=True)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
+    primary_membership_id = models.CharField(max_length=255, null=True, blank=True)
+    membership_type = models.CharField(max_length=1, null=True, blank=True)  
 
     objects = CustomAccountManager()
 
