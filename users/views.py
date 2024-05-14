@@ -124,6 +124,7 @@ def refresh_bungie_token(user):
 class BungieProfile(APIView):
     def get(self, request, *args, **kwargs):
         user = request.user
+        print(f'this is the user data: {user}')
         # from the username get the refresh _token from the database and pass into the  refresh function
         # ?????
         try:
@@ -139,4 +140,4 @@ class BungieProfile(APIView):
         }
         response = requests.get('https://www.bungie.net/Platform/Destiny2/{membershipType}/Profile/{destinyMembershipId}/', headers=headers)
         response_data = response.json()
-        print(response_data)
+        print(f'this is the response: {response_data}')
