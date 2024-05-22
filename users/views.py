@@ -139,7 +139,7 @@ class BungieProfile(APIView):
             'X-API-Key': settings.SOCIAL_AUTH_BUNGIE_API_KEY,
             'Authorization': f'Bearer {access_token}',
         }
-        response = requests.get(f'https://www.bungie.net/Platform/Destiny2/{membership_type}/Profile/{primary_membership_id}/?components=100,102,200,201,205', headers=headers)
+        response = requests.get(f'https://www.bungie.net/Platform/Destiny2/{membership_type}/Profile/{primary_membership_id}/?components=100,102,200,201,205,300', headers=headers)
         response_data = response.json()
 
         return Response(response_data, status=status.HTTP_200_OK)
