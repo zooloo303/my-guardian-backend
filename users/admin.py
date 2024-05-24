@@ -1,5 +1,5 @@
 from django.contrib import admin
-from users.models import NewUser
+from users.models import NewUser, UserFaves
 from django.contrib.auth.admin import UserAdmin
 from django.forms import Textarea
 from django.db import models
@@ -29,3 +29,11 @@ class UserAdminConfig(UserAdmin):
 
 
 admin.site.register(NewUser, UserAdminConfig)
+
+
+# New admin configuration for UserFaves
+class UserFavesAdmin(admin.ModelAdmin):
+    list_display = ('username', 'itemInstanceId', 'itemHash')
+    search_fields = ('username__username', 'itemInstanceId', 'itemHash')
+
+admin.site.register(UserFaves, UserFavesAdmin)

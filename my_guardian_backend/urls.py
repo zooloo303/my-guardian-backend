@@ -8,5 +8,4 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     # Guardian API
     path('api/user/', include('users.urls', namespace='users')),
-    path('api/def/', include('d2_defs.urls', namespace='d2_defs')),
 ]

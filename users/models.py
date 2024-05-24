@@ -51,3 +51,10 @@ class NewUser(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.username
+    
+
+class UserFaves(models.Model):
+    username = models.ForeignKey(NewUser, on_delete=models.CASCADE)
+    itemInstanceId = models.CharField(max_length=255, unique=True)
+    itemHash = models.IntegerField()
+    

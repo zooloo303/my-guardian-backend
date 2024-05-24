@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from users.models import NewUser
+from users.models import NewUser, UserFaves
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
@@ -23,3 +23,14 @@ class CustomUserSerializer(serializers.ModelSerializer):
             instance.set_password(password)
         instance.save()
         return instance
+    
+    
+class UserFavesSerializer(serializers.ModelSerializer):
+    username = serializers.SlugRelatedField(
+        queryset=NewUser.objects.all(),
+        slug_field='username'
+    )
+
+    class Meta:
+        model = UserFaves
+        fields = ['username', 'itemInstanceId', 'itemHash']

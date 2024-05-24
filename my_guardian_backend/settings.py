@@ -22,7 +22,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'users',
-    'd2_defs',
+
     # Oauth
     'oauth2_provider',
     'social_django',
