@@ -149,7 +149,54 @@ class BungieProfile(APIView):
         return Response(response_data, status=status.HTTP_200_OK)
     
 
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+import requests
+from django.conf import settings
 
+class TransferItem(APIView):
+    def post(self, request, *args, **kwargs):
+        username = request.data.get('username')
+        itemReferenceHash = request.data.get('itemReferenceHash')
+        stackSize = request.data.get('stackSize')
+        transferToVault = request.data.get('transferToVault')
+        itemId = request.data.get('itemId')
+        characterId = request.data.get('characterId')
+        membershipType = request.data.get('membershipType')
+
+        # Check if any field is None
+        if None in [username, itemReferenceHash, stackSize, transferToVault, itemId, characterId, membershipType]:
+            return Response({'error': 'All fields are required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            access_token = refresh_bungie_token(username)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        headers = {
+            'X-API-Key': settings.SOCIAL_AUTH_BUNGIE_API_KEY,
+            'Authorization': f'Bearer {access_token}',
+        }
+
+        body = {
+            'itemReferenceHash': itemReferenceHash,
+            'stackSize': stackSize,
+            'transferToVault': transferToVault,
+            'itemId': itemId,
+            'characterId': characterId,
+            'membershipType': membershipType,
+        }
+
+        response = requests.post('https://www.bungie.net/Platform/Destiny2/Actions/Items/TransferItem/', headers=headers, json=body)
+
+        if response.status_code == 200:
+            return Response(response.json(), status=status.HTTP_200_OK)
+        else:
+            return Response(response.json(), status=status.HTTP_400_BAD_REQUEST)
+
+        
+        
 # Get all favorite items for a user
 class GetFaveItems(APIView):
     def get(self, request, *args, **kwargs):
