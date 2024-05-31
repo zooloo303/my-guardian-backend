@@ -89,10 +89,10 @@ class BungieAuth(APIView):
                 if membership.get('membershipId') == primary_membership_id:
                     user.membership_type = membership.get('membershipType')
                     break
-
+            print("hello")
             user.save()
             displayName = response_data.get('Response', {}).get('bungieNetUser', {}).get('displayName')
-            print(f"this is the user object: ", user)
+            print(f"this is the displayName: ", displayName)
             # Update or create the refresh token
             RefreshToken.objects.update_or_create(
                 user=user,
