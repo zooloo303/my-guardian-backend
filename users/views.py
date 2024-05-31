@@ -37,8 +37,10 @@ class BungieAuth(APIView):
             'client_id': settings.SOCIAL_AUTH_BUNGIE_KEY,
             'client_secret': settings.SOCIAL_AUTH_BUNGIE_SECRET,
         }
+        print(payload)
         response = requests.post(url, data=payload)
         response_data = response.json()
+        print(response_data)
         membership_id = response_data.get('membership_id')
 
         access_token = response_data.get('access_token')
