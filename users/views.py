@@ -13,9 +13,6 @@ from rest_framework.permissions import AllowAny
 from .serializers import CustomUserSerializer, UserFavesSerializer
 from oauth2_provider.models import AccessToken, RefreshToken, Application
 
-import logging
-logger = logging.getLogger(__name__)
-
 
 class CustomUserCreate(APIView):
     permission_classes = [AllowAny]
@@ -44,10 +41,10 @@ class BungieAuth(APIView):
             'client_secret': settings.SOCIAL_AUTH_BUNGIE_SECRET,
         }
         
-        logger.debug(f"Payload for token request: {payload}")
+        print(f"Payload for token request: {payload}")
         response = requests.post(url, data=payload)
         response_data = response.json()
-        logger.debug(f"Response from Bungie token endpoint: {response_data}")
+        print(f"Response from Bungie token endpoint: {response_data}")
 
         if response.status_code != 200:
             return Response({'error': 'Failed to fetch token from Bungie'}, status=response.status_code)
@@ -86,7 +83,7 @@ class BungieAuth(APIView):
             }
             response = requests.get('https://www.bungie.net/Platform/User/GetMembershipsForCurrentUser/', headers=headers)
             response_data = response.json()
-            logger.debug(f"response from request for memberships: {response_data}")
+            print(f"response from request for memberships: {response_data}")
             primary_membership_id = response_data.get('Response', {}).get('primaryMembershipId')
             user.primary_membership_id = primary_membership_id
             destiny_memberships = response_data.get('Response', {}).get('destinyMemberships', [])
