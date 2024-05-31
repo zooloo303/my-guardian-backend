@@ -13,6 +13,8 @@ from rest_framework.permissions import AllowAny
 from .serializers import CustomUserSerializer, UserFavesSerializer
 from oauth2_provider.models import AccessToken, RefreshToken, Application
 
+import logging
+logger = logging.getLogger(__name__)
 
 class CustomUserCreate(APIView):
     permission_classes = [AllowAny]
@@ -40,27 +42,31 @@ class BungieAuth(APIView):
             'client_id': settings.SOCIAL_AUTH_BUNGIE_KEY,
             'client_secret': settings.SOCIAL_AUTH_BUNGIE_SECRET,
         }
-        
+        logger.debug(f"Payload for token request: {payload}")
         response = requests.post(url, data=payload)
         response_data = response.json()
-        print(response_data)
+        logger.debug(f"Response from Bungie token endpoint: {response_data}")
 
         if response.status_code != 200:
+            logger.error(f"Failed to fetch token from Bungie: {response.status_code} {response_data}")
             return Response({'error': 'Failed to fetch token from Bungie'}, status=response.status_code)
 
         membership_id = response_data.get('membership_id')
         access_token = response_data.get('access_token')
         refresh_token = response_data.get('refresh_token')
         expires_in = response_data.get('expires_in')
+        logger.debug(f"Extracted tokens and membership ID: {membership_id}, {access_token}, {refresh_token}, {expires_in}")
 
         if not all([membership_id, access_token, refresh_token, expires_in]):
+            logger.error("Missing data in the Bungie response")
             return Response({'error': 'Missing data in the response'}, status=status.HTTP_400_BAD_REQUEST)
 
         User = get_user_model()
         user, created = User.objects.get_or_create(username=membership_id)
+        logger.debug(f"User object: {user}, created: {created}")
 
         expires = timezone.now() + timedelta(seconds=expires_in)
-        print(f"this is the user object: ", user)
+        logger.debug(f"Token expiry time: {expires}")
 
         try:
             # Update or create the access token
@@ -68,6 +74,7 @@ class BungieAuth(APIView):
                 user=user,
                 defaults={'token': access_token, 'expires': expires}
             )
+            logger.debug("Access token updated or created")
 
             # Get or create the application
             application, _ = Application.objects.get_or_create(
@@ -75,6 +82,7 @@ class BungieAuth(APIView):
                 client_type=Application.CLIENT_CONFIDENTIAL,
                 authorization_grant_type=Application.GRANT_AUTHORIZATION_CODE,
             )
+            logger.debug(f"Application object: {application}")
 
             headers = {
                 'X-API-Key': settings.SOCIAL_AUTH_BUNGIE_API_KEY,
@@ -82,6 +90,8 @@ class BungieAuth(APIView):
             }
             response = requests.get('https://www.bungie.net/Platform/User/GetMembershipsForCurrentUser/', headers=headers)
             response_data = response.json()
+            logger.debug(f"Response from Bungie user endpoint: {response_data}")
+
             primary_membership_id = response_data.get('Response', {}).get('primaryMembershipId')
             user.primary_membership_id = primary_membership_id
             destiny_memberships = response_data.get('Response', {}).get('destinyMemberships', [])
@@ -89,16 +99,19 @@ class BungieAuth(APIView):
                 if membership.get('membershipId') == primary_membership_id:
                     user.membership_type = membership.get('membershipType')
                     break
-            print("hello")
+
             user.save()
+            logger.debug(f"User {user.username} saved with updated membership info")
+
             displayName = response_data.get('Response', {}).get('bungieNetUser', {}).get('displayName')
-            print(f"this is the displayName: ", displayName)
+
             # Update or create the refresh token
             RefreshToken.objects.update_or_create(
                 user=user,
                 application=application,
                 defaults={'token': refresh_token}
             )
+            logger.debug("Refresh token updated or created")
 
             return Response({
                 'message': 'User and tokens created',
@@ -108,6 +121,7 @@ class BungieAuth(APIView):
                 'refresh_token': refresh_token
             }, status=status.HTTP_201_CREATED)
         except Exception as e:
+            logger.error(f"Exception occurred: {str(e)}")
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 def refresh_bungie_token(username):
