@@ -10,7 +10,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY')
 DEBUG = True if dev_mode == '1' else False
 
-ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS')
+ALLOWED_HOSTS = [os.environ.get('DJANGO_ALLOWED_HOSTS')]
 
 INSTALLED_APPS = [
     'rest_framework',
