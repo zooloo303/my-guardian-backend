@@ -4,13 +4,16 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv()
-dev_mode = os.environ.get('DEBUG')
+debug = os.environ.get('DEBUG')
+dev_mode = os.environ.get('DEV_MODE')
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY')
-DEBUG = True if dev_mode == '1' else False
+DEBUG = True if debug == True else False
+DEV_MODE = True if dev_mode == True else False
 
-if DEBUG:
+if DEV_MODE:
     ALLOWED_HOSTS = ['*']
 else:
     ALLOWED_HOSTS = [os.environ.get('DJANGO_ALLOWED_HOSTS')]
@@ -69,17 +72,18 @@ WSGI_APPLICATION = 'my_guardian_backend.wsgi.application'
 
 # Database
 
-if dev_mode == '1':
+if DEV_MODE:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
-elif dev_mode == '0':
+else:
+    database_url = os.environ.get('DATABASE_URL')
     DATABASES = {
     'default': dj_database_url.config(
-        default='postgres://zooloo:Fn2ZTIVveREAmIiNLhlWewa1INEK8bBj@dpg-cpcgovu74orc739vbph0-a/my_guardians_postgresql_db',
+        default='database_url',
         conn_max_age=600
     )
 }
