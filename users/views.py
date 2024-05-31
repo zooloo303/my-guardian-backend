@@ -40,7 +40,7 @@ class BungieAuth(APIView):
             'client_id': settings.SOCIAL_AUTH_BUNGIE_KEY,
             'client_secret': settings.SOCIAL_AUTH_BUNGIE_SECRET,
         }
-        print(payload)
+        
         response = requests.post(url, data=payload)
         response_data = response.json()
         print(response_data)
@@ -52,7 +52,6 @@ class BungieAuth(APIView):
         access_token = response_data.get('access_token')
         refresh_token = response_data.get('refresh_token')
         expires_in = response_data.get('expires_in')
-        print(membership_id, access_token, refresh_token, expires_in)
 
         if not all([membership_id, access_token, refresh_token, expires_in]):
             return Response({'error': 'Missing data in the response'}, status=status.HTTP_400_BAD_REQUEST)
@@ -61,7 +60,7 @@ class BungieAuth(APIView):
         user, created = User.objects.get_or_create(username=membership_id)
 
         expires = timezone.now() + timedelta(seconds=expires_in)
-        print(user)
+        print(f"this is the user object: ", user)
 
         try:
             # Update or create the access token
@@ -93,7 +92,7 @@ class BungieAuth(APIView):
 
             user.save()
             displayName = response_data.get('Response', {}).get('bungieNetUser', {}).get('displayName')
-
+            print(f"this is the user object: ", user)
             # Update or create the refresh token
             RefreshToken.objects.update_or_create(
                 user=user,
