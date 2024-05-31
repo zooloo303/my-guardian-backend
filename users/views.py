@@ -30,6 +30,9 @@ class CustomUserCreate(APIView):
 class BungieAuth(APIView):
     def post(self, request, *args, **kwargs):
         code = request.data.get('code')
+        if not code:
+            return Response({'error': 'Authorization code is missing'}, status=status.HTTP_400_BAD_REQUEST)
+
         url = "https://www.bungie.net/platform/app/oauth/token/"
         payload = {
             'grant_type': 'authorization_code',
@@ -41,20 +44,31 @@ class BungieAuth(APIView):
         response = requests.post(url, data=payload)
         response_data = response.json()
         print(response_data)
-        membership_id = response_data.get('membership_id')
 
+        if response.status_code != 200:
+            return Response({'error': 'Failed to fetch token from Bungie'}, status=response.status_code)
+
+        membership_id = response_data.get('membership_id')
         access_token = response_data.get('access_token')
         refresh_token = response_data.get('refresh_token')
         expires_in = response_data.get('expires_in')
+        print(membership_id, access_token, refresh_token, expires_in)
 
-        if membership_id and access_token and refresh_token and expires_in:
-            User = get_user_model()
-            user, created = User.objects.get_or_create(username=membership_id)
+        if not all([membership_id, access_token, refresh_token, expires_in]):
+            return Response({'error': 'Missing data in the response'}, status=status.HTTP_400_BAD_REQUEST)
 
-            expires = timezone.now() + timedelta(seconds=expires_in)
+        User = get_user_model()
+        user, created = User.objects.get_or_create(username=membership_id)
 
+        expires = timezone.now() + timedelta(seconds=expires_in)
+        print(user)
+
+        try:
             # Update or create the access token
-            AccessToken.objects.update_or_create(user=user, defaults={'token': access_token, 'expires': expires})
+            AccessToken.objects.update_or_create(
+                user=user,
+                defaults={'token': access_token, 'expires': expires}
+            )
 
             # Get or create the application
             application, _ = Application.objects.get_or_create(
@@ -81,17 +95,21 @@ class BungieAuth(APIView):
             displayName = response_data.get('Response', {}).get('bungieNetUser', {}).get('displayName')
 
             # Update or create the refresh token
-            RefreshToken.objects.update_or_create(user=user, application=application, defaults={'token': refresh_token})
+            RefreshToken.objects.update_or_create(
+                user=user,
+                application=application,
+                defaults={'token': refresh_token}
+            )
 
             return Response({
                 'message': 'User and tokens created',
                 'membership_id': membership_id,
                 'displayName': displayName,
                 'access_token': access_token,
-                'refresh_token': refresh_token}, status=status.HTTP_201_CREATED)
-        else:
-            return Response({'error': 'Missing data in the response'}, status=status.HTTP_400_BAD_REQUEST)       
-
+                'refresh_token': refresh_token
+            }, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 def refresh_bungie_token(username):
     user_model = get_user_model()
