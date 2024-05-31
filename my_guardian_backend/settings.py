@@ -65,14 +65,14 @@ WSGI_APPLICATION = 'my_guardian_backend.wsgi.application'
 
 # Database
 
-if dev_mode == '0':
+if dev_mode == '1':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
-elif dev_mode == '1':
+elif dev_mode == '0':
     DATABASES = {
             'default': {
                 'ENGINE': os.environ.get("SQL_ENGINE"),
