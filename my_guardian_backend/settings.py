@@ -1,4 +1,5 @@
 import os
+import dj_database_url
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -74,22 +75,11 @@ if dev_mode == '1':
     }
 elif dev_mode == '0':
     DATABASES = {
-            'default': {
-                'ENGINE': os.environ.get("SQL_ENGINE"),
-                'NAME': os.environ.get("SQL_DATABASE"),
-                'USER': os.environ.get("SQL_USER"),
-                'PASSWORD': os.environ.get("SQL_PASSWORD"),
-                'HOST': os.environ.get("SQL_HOST"),
-                'PORT': os.environ.get("SQL_PORT"),
-            }
-    }
-# else:
-#     DATABASES = {
-#         'default': dj_database_url.config(
-#             default='postgres://zooloo:Fn2ZTIVveREAmIiNLhlWewa1INEK8bBj@dpg-cpcgovu74orc739vbph0-a/my_guardians_postgresql_db',
-#             conn_max_age=600
-#         )
-#     }
+    'default': dj_database_url.config(
+        default='postgres://zooloo:Fn2ZTIVveREAmIiNLhlWewa1INEK8bBj@dpg-cpcgovu74orc739vbph0-a/my_guardians_postgresql_db',
+        conn_max_age=600
+    )
+}
     # Password validation
 
 AUTH_PASSWORD_VALIDATORS = [
