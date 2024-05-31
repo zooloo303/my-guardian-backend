@@ -1,5 +1,4 @@
 import os
-import dj_database_url
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -10,7 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-^%mok&fc9qgwa^)sndg$-8si$t7vo^)il%$m4kly!6a=943+9d'
 DEBUG = True if dev_mode == '1' else False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',')
 
 INSTALLED_APPS = [
     'rest_framework',
@@ -66,20 +65,31 @@ WSGI_APPLICATION = 'my_guardian_backend.wsgi.application'
 
 # Database
 
-if dev_mode == '1':
+if dev_mode == '0':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
-else:
+elif dev_mode == '1':
     DATABASES = {
-        'default': dj_database_url.config(
-            default='postgres://zooloo:Fn2ZTIVveREAmIiNLhlWewa1INEK8bBj@dpg-cpcgovu74orc739vbph0-a/my_guardians_postgresql_db',
-            conn_max_age=600
-        )
+            'default': {
+                'ENGINE': os.environ.get("SQL_ENGINE"),
+                'NAME': os.environ.get("SQL_DATABASE"),
+                'USER': os.environ.get("SQL_USER"),
+                'PASSWORD': os.environ.get("SQL_PASSWORD"),
+                'HOST': os.environ.get("SQL_HOST"),
+                'PORT': os.environ.get("SQL_PORT"),
+            }
     }
+# else:
+#     DATABASES = {
+#         'default': dj_database_url.config(
+#             default='postgres://zooloo:Fn2ZTIVveREAmIiNLhlWewa1INEK8bBj@dpg-cpcgovu74orc739vbph0-a/my_guardians_postgresql_db',
+#             conn_max_age=600
+#         )
+#     }
     # Password validation
 
 AUTH_PASSWORD_VALIDATORS = [
