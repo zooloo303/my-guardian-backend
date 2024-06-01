@@ -130,6 +130,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOWED_ORIGINS = [
+    "https://my-guardians.com,"
     "http://localhost:3000",
     "https://localhost:3000",
     "http://127.0.0.1:3000",
@@ -141,7 +142,8 @@ CORS_ALLOWED_ORIGINS = [
 
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOW_CREDENTIALS = True
-CSRF_TRUSTED_ORIGINS = ["https://localhost:3000",
+CSRF_TRUSTED_ORIGINS = ["https://my-guardians.com",
+                        "https://localhost:3000",
                         "https://my-guardian.onrender.com"]
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
