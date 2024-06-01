@@ -10,10 +10,8 @@ dev_mode = os.environ.get('DEV_MODE')
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY')
-DEBUG = True if debug == True else False
-DEV_MODE = True if dev_mode == True else False
 
-if DEV_MODE:
+if debug:
     ALLOWED_HOSTS = ['*']
 else:
     ALLOWED_HOSTS = [os.environ.get('DJANGO_ALLOWED_HOSTS')]
@@ -72,7 +70,7 @@ WSGI_APPLICATION = 'my_guardian_backend.wsgi.application'
 
 # Database
 
-if DEV_MODE:
+if dev_mode:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -121,7 +119,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = '/static/'
-if not DEBUG:
+if not debug:
     # Tell Django to copy static assets into a path called `staticfiles` (this is specific to Render)
     STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
     # Enable the WhiteNoise storage backend, which compresses static files to reduce disk use
