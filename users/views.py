@@ -84,17 +84,28 @@ class BungieAuth(APIView):
             response = requests.get('https://www.bungie.net/Platform/User/GetMembershipsForCurrentUser/', headers=headers)
             response_data = response.json()
             print(f"response from request for memberships: {response_data}")
+
             primary_membership_id = response_data.get('Response', {}).get('primaryMembershipId')
-            user.primary_membership_id = primary_membership_id
             destiny_memberships = response_data.get('Response', {}).get('destinyMemberships', [])
-            for membership in destiny_memberships:
-                if membership.get('membershipId') == primary_membership_id:
-                    user.membership_type = membership.get('membershipType')
-                    break
-            print("hello")
+            # Set the primary membership id and membership type
+            # If there is a primary membership id, set it as the primary membership id
+            if primary_membership_id:
+                user.primary_membership_id = primary_membership_id
+                for membership in destiny_memberships:
+                    if membership.get('membershipId') == primary_membership_id:
+                        user.membership_type = membership.get('membershipType')
+                        break
+            # If there is no primary membership id, set the first membership id as the primary membership id        
+            else:
+                if len(destiny_memberships) == 1:
+                    single_membership = destiny_memberships[0]
+                    user.primary_membership_id = single_membership.get('membershipId')
+                    user.membership_type = single_membership.get('membershipType')
+
             user.save()
+
             displayName = response_data.get('Response', {}).get('bungieNetUser', {}).get('displayName')
-            print(f"this is the displayName: ", displayName)
+
             # Update or create the refresh token
             RefreshToken.objects.update_or_create(
                 user=user,
