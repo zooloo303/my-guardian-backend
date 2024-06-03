@@ -11,7 +11,7 @@ dev_mode = os.environ.get('DEV_MODE')
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
-if debug:
+if debug == 'True':
     ALLOWED_HOSTS = ['*']
 else:
     ALLOWED_HOSTS = [os.environ.get('DJANGO_ALLOWED_HOSTS')]
@@ -70,7 +70,7 @@ WSGI_APPLICATION = 'my_guardian_backend.wsgi.application'
 
 # Database
 
-if dev_mode:
+if dev_mode == 'True':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
