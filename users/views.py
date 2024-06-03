@@ -29,6 +29,10 @@ class CustomUserCreate(APIView):
     
 class BungieAuth(APIView):
     def post(self, request, *args, **kwargs):
+        # Check if Destiny 2 API is enabled
+        if not is_destiny_api_enabled():
+            return Response({'error': 'Destiny 2 API is currently disabled for maintenance'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
         code = request.data.get('code')
         if not code:
             return Response({'error': 'Authorization code is missing'}, status=status.HTTP_400_BAD_REQUEST)
@@ -123,6 +127,7 @@ class BungieAuth(APIView):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
 def refresh_bungie_token(username):
     user_model = get_user_model()
     user = user_model.objects.get(username=username)
@@ -151,10 +156,21 @@ def refresh_bungie_token(username):
     else:
         raise Exception('Failed to refresh Bungie token')   
         
+def is_destiny_api_enabled():
+    url = "https://www.bungie.net/Platform/Settings/"
+    response = requests.get(url)
+    if response.status_code == 200:
+        settings_data = response.json().get('Response', {})
+        destiny_settings = settings_data.get('Destiny2', {})
+        return destiny_settings.get('enabled', True)
+    return True
 
 # gets the bungie profile data
 class BungieProfile(APIView):
     def get(self, request, *args, **kwargs):
+        if not is_destiny_api_enabled():
+            return Response({'error': 'Destiny 2 API is currently disabled for maintenance'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
         username = request.query_params.get('username')
         user_model = get_user_model()
         try:
@@ -179,13 +195,7 @@ class BungieProfile(APIView):
         sync_user_faves(username, profile_items)
 
         return Response(response_data, status=status.HTTP_200_OK)
-    
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-import requests
-from django.conf import settings
 
 class TransferItem(APIView):
     def post(self, request, *args, **kwargs):
@@ -227,7 +237,7 @@ class TransferItem(APIView):
         else:
             return Response(response.json(), status=status.HTTP_400_BAD_REQUEST)
 
-        
+       
         
 # Get all favorite items for a user
 class GetFaveItems(APIView):
