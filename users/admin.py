@@ -1,5 +1,5 @@
 from django.contrib import admin
-from users.models import NewUser, UserFaves
+from users.models import NewUser, UserFaves, OAuthToken
 from django.contrib.auth.admin import UserAdmin
 from django.forms import Textarea
 from django.db import models
@@ -31,9 +31,17 @@ class UserAdminConfig(UserAdmin):
 admin.site.register(NewUser, UserAdminConfig)
 
 
-# New admin configuration for UserFaves
 class UserFavesAdmin(admin.ModelAdmin):
     list_display = ('username', 'itemInstanceId', 'itemHash')
     search_fields = ('username__username', 'itemInstanceId', 'itemHash')
 
 admin.site.register(UserFaves, UserFavesAdmin)
+
+
+class OAuthTokenAdmin(admin.ModelAdmin):
+    list_display = ('user', 'access_token', 'refresh_token', 'expires_in', 'created_at')
+    search_fields = ('user__username', 'access_token')
+    list_filter = ('user', 'created_at')
+    readonly_fields = ('created_at',)
+
+admin.site.register(OAuthToken, OAuthTokenAdmin)

@@ -1,3 +1,4 @@
+# models.py
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -23,7 +24,6 @@ class CustomAccountManager(BaseUserManager):
 
     def create_user(self, username, first_name, password, **other_fields):
 
-        # email = self.normalize_email(email)
         user = self.model(username=username,
                           first_name=first_name, **other_fields)
         user.set_password(password)
@@ -37,8 +37,7 @@ class NewUser(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=150, unique=True)
     first_name = models.CharField(max_length=150, blank=True)
     start_date = models.DateTimeField(default=timezone.now)
-    about = models.TextField(_(
-        'about'), max_length=500, blank=True)
+    about = models.TextField(_('about'), max_length=500, blank=True)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     primary_membership_id = models.CharField(max_length=255, null=True, blank=True)
@@ -51,10 +50,19 @@ class NewUser(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.username
-    
+
+
+class OAuthToken(models.Model):
+    user = models.ForeignKey(NewUser, on_delete=models.CASCADE)
+    access_token = models.CharField(max_length=512)
+    refresh_token = models.CharField(max_length=512, null=True, blank=True)
+    expires_in = models.IntegerField()
+    refresh_expires_in = models.IntegerField()
+    token_type = models.CharField(max_length=50)
+    created_at = models.DateTimeField(auto_now_add=True)
+
 
 class UserFaves(models.Model):
     username = models.ForeignKey(NewUser, on_delete=models.CASCADE)
     itemInstanceId = models.CharField(max_length=255, unique=True)
     itemHash = models.IntegerField()
-    
