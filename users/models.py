@@ -58,7 +58,6 @@ class OAuthToken(models.Model):
     refresh_token = models.CharField(max_length=512, null=True, blank=True)
     expires_in = models.IntegerField()
     refresh_expires_in = models.IntegerField()
-    token_type = models.CharField(max_length=50)
     created_at = models.DateTimeField(auto_now_add=True)
 
 

@@ -30,7 +30,6 @@ class BungieAuth(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
-        # Check if Destiny 2 API is enabled
         if not is_destiny_api_enabled():
             return Response({'error': 'Destiny 2 API is currently disabled for maintenance'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
@@ -56,8 +55,9 @@ class BungieAuth(APIView):
         access_token = response_data.get('access_token')
         refresh_token = response_data.get('refresh_token')
         expires_in = response_data.get('expires_in')
+        refresh_expires_in = response_data.get('refresh_expires_in')  # Get refresh_expires_in
 
-        if not all([membership_id, access_token, refresh_token, expires_in]):
+        if not all([membership_id, access_token, refresh_token, expires_in, refresh_expires_in]):
             return Response({'error': 'Missing data in the response'}, status=status.HTTP_400_BAD_REQUEST)
 
         User = get_user_model()
@@ -72,6 +72,7 @@ class BungieAuth(APIView):
                     'access_token': access_token,
                     'refresh_token': refresh_token,
                     'expires_in': expires_in,
+                    'refresh_expires_in': refresh_expires_in,
                     'created_at': timezone.now(),
                 }
             )
@@ -106,7 +107,9 @@ class BungieAuth(APIView):
                 'membership_id': membership_id,
                 'displayName': displayName,
                 'access_token': access_token,
-                'refresh_token': refresh_token
+                'refresh_token': refresh_token,
+                'expires_in': expires_in,
+                'refresh_expires_in': refresh_expires_in
             }, status=status.HTTP_201_CREATED)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -134,9 +137,10 @@ def refresh_bungie_token(username):
         response_data = response.json()
         access_token = response_data.get('access_token')
         expires_in = response_data.get('expires_in')
+        refresh_expires_in = response_data.get('refresh_expires_in')  # Get refresh_expires_in
         expires = timezone.now() + timedelta(seconds=expires_in)
         OAuthToken.objects.filter(user=user).update(
-            access_token=access_token, expires_in=expires_in, created_at=timezone.now())
+            access_token=access_token, expires_in=expires_in, refresh_expires_in=refresh_expires_in, created_at=timezone.now())
         return access_token
     else:
         raise Exception('Failed to refresh Bungie token')
@@ -219,7 +223,6 @@ class TransferItem(APIView):
         characterId = request.data.get('characterId')
         membershipType = request.data.get('membershipType')
 
-        # Check if any field is None
         if None in [username, itemReferenceHash, stackSize, transferToVault, itemId, characterId, membershipType]:
             return Response({'error': 'All fields are required'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -259,7 +262,6 @@ class GetFaveItems(APIView):
         except ObjectDoesNotExist:
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
         try:
-            # Get the User object first
             user_faves = UserFaves.objects.filter(username=user)
             serializer = UserFavesSerializer(user_faves, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
