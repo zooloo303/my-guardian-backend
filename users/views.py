@@ -293,5 +293,5 @@ class DeleteFaveItem(APIView):
 def sync_user_faves(user, profile_items):
     user_faves = UserFaves.objects.filter(username=user)
     for fave in user_faves:
-        if not any(item['itemInstanceId'] == fave.itemInstanceId for item in profile_items):
+        if not any(item.get('itemInstanceId') == fave.itemInstanceId for item in profile_items):
             fave.delete()
