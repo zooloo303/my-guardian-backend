@@ -27,6 +27,10 @@ class BungieAuth(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
+        # Check if Destiny 2 API is enabled
+        if not is_destiny_api_enabled():
+            return Response({'error': 'Destiny 2 API is currently disabled for maintenance'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
         code = request.data.get('code')
         if not code:
             return Response({'error': 'Authorization code is missing'}, status=status.HTTP_400_BAD_REQUEST)
@@ -55,25 +59,73 @@ class BungieAuth(APIView):
         OAuthToken.objects.update_or_create(
             user=user,
             defaults={
-                'access_token': access_token,
-                'refresh_token': refresh_token,
-                'expires_in': expires_in,
-                'refresh_expires_in': refresh_expires_in,
-                'token_type': response_data.get('token_type'),
-                'created_at': timezone.now(),
+        expires = timezone.now() + timedelta(seconds=expires_in)
+        print(f"this is the user object: ", user)
+
+        try:
+            # Update or create the access token
+            AccessToken.objects.update_or_create(
+                user=user,
+                defaults={'token': access_token, 'expires': expires}
+            )
+            
+            # Get or create the application
+            application, _ = Application.objects.get_or_create(
+                name='Bungie',
+                client_type=Application.CLIENT_CONFIDENTIAL,
+                authorization_grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            )
+
+            headers = {
+                'X-API-Key': settings.SOCIAL_AUTH_BUNGIE_API_KEY,
+                'Authorization': f'Bearer {access_token}',
             }
-        )
+            response = requests.get('https://www.bungie.net/Platform/User/GetMembershipsForCurrentUser/', headers=headers)
+            response_data = response.json()
+            print(f"response from request for memberships: {response_data}")
 
-        return Response({
-            'message': 'User and tokens created',
-            'membership_id': membership_id,
-            'access_token': access_token,
-            'refresh_token': refresh_token
-        }, status=status.HTTP_201_CREATED)
+            primary_membership_id = response_data.get('Response', {}).get('primaryMembershipId')
+            destiny_memberships = response_data.get('Response', {}).get('destinyMemberships', [])
+            # Set the primary membership id and membership type
+            # If there is a primary membership id, set it as the primary membership id
+            if primary_membership_id:
+                user.primary_membership_id = primary_membership_id
+                for membership in destiny_memberships:
+                    if membership.get('membershipId') == primary_membership_id:
+                        user.membership_type = membership.get('membershipType')
+                        break
+            # If there is no primary membership id, set the first membership id as the primary membership id        
+            else:
+                if len(destiny_memberships) == 1:
+                    single_membership = destiny_memberships[0]
+                    user.primary_membership_id = single_membership.get('membershipId')
+                    user.membership_type = single_membership.get('membershipType')
 
+            user.save()
 
-def refresh_bungie_token(user):
-    token = OAuthToken.objects.get(user=user)
+            displayName = response_data.get('Response', {}).get('bungieNetUser', {}).get('displayName')
+
+            # Update or create the refresh token
+            RefreshToken.objects.update_or_create(
+                user=user,
+                application=application,
+                defaults={'token': refresh_token}
+            )
+
+            return Response({
+                'message': 'User and tokens created',
+                'membership_id': membership_id,
+                'displayName': displayName,
+                'access_token': access_token,
+                'refresh_token': refresh_token
+            }, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+def refresh_bungie_token(username):
+    user_model = get_user_model()
+    user = user_model.objects.get(username=username)
+    refresh_token = RefreshToken.objects.get(user=user).token
     url = "https://www.bungie.net/platform/app/oauth/token/"
 
     payload = {
@@ -125,9 +177,22 @@ class RefreshTokenView(APIView):
             'refresh_expires_in': token.refresh_expires_in
         }, status=status.HTTP_200_OK)
 
+        raise Exception('Failed to refresh Bungie token')   
+        
+def is_destiny_api_enabled():
+    url = "https://www.bungie.net/Platform/Settings/"
+    response = requests.get(url)
+    if response.status_code == 200:
+        settings_data = response.json().get('Response', {})
+        destiny_settings = settings_data.get('Destiny2', {})
+        return destiny_settings.get('enabled', True)
+    return True
 
 class BungieProfile(APIView):
     def get(self, request, *args, **kwargs):
+        if not is_destiny_api_enabled():
+            return Response({'error': 'Destiny 2 API is currently disabled for maintenance'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
         username = request.query_params.get('username')
         user_model = get_user_model()
         try:
@@ -197,6 +262,9 @@ class TransferItem(APIView):
             return Response(response.json(), status=status.HTTP_400_BAD_REQUEST)
 
 
+       
+        
+# Get all favorite items for a user
 class GetFaveItems(APIView):
     def get(self, request, *args, **kwargs):
         username = request.query_params.get('username')

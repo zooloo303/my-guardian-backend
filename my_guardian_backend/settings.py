@@ -10,8 +10,10 @@ dev_mode = os.environ.get('DEV_MODE')
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY')
+DEBUG = True if debug == 'True' else False
+DEV_MODE = True if dev_mode == 'True' else False
 
-if debug:
+if DEBUG:
     ALLOWED_HOSTS = ['*']
 else:
     ALLOWED_HOSTS = [os.environ.get('DJANGO_ALLOWED_HOSTS')]
@@ -62,7 +64,7 @@ WSGI_APPLICATION = 'my_guardian_backend.wsgi.application'
 
 # Database
 
-if dev_mode:
+if DEV_MODE:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
