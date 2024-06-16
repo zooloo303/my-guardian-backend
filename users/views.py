@@ -200,7 +200,7 @@ class BungieProfile(APIView):
             'X-API-Key': settings.SOCIAL_AUTH_BUNGIE_API_KEY,
             'Authorization': f'Bearer {access_token}',
         }
-        response = requests.get(f'https://www.bungie.net/Platform/Destiny2/{membership_type}/Profile/{primary_membership_id}/?components=100,102,200,201,205,300', headers=headers)
+        response = requests.get(f'https://www.bungie.net/Platform/Destiny2/{membership_type}/Profile/{primary_membership_id}/?components=100,102,200,201,205,300,302,304,305', headers=headers)
         response_data = response.json()
 
         # Call the sync_user_faves function
@@ -251,6 +251,44 @@ class TransferItem(APIView):
             return Response(response.json(), status=status.HTTP_200_OK)
         else:
             return Response(response.json(), status=status.HTTP_400_BAD_REQUEST)
+
+
+class EquipItem(APIView):
+    def post(self, request, *args, **kwargs):
+        if not is_destiny_api_enabled():
+            return Response({'error': 'Destiny 2 API is currently disabled for maintenance'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+        username = request.data.get('username')
+        itemId = request.data.get('itemId')
+        characterId = request.data.get('characterId')
+        membershipType = request.data.get('membershipType')
+
+        if None in [username, itemId, characterId, membershipType]:
+            return Response({'error': 'All fields are required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            access_token = refresh_bungie_token(username)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        headers = {
+            'X-API-Key': settings.SOCIAL_AUTH_BUNGIE_API_KEY,
+            'Authorization': f'Bearer {access_token}',
+        }
+
+        body = {
+            'itemId': itemId,
+            'characterId': characterId,
+            'membershipType': membershipType,
+        }
+
+        response = requests.post('https://www.bungie.net/Platform/Destiny2/Actions/Items/EquipItem/', headers=headers, json=body)
+
+        if response.status_code == 200:
+            return Response(response.json(), status=status.HTTP_200_OK)
+        else:
+            return Response(response.json(), status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class GetFaveItems(APIView):

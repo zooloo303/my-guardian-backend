@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import CustomUserCreate, BungieAuth, BungieProfile, GetFaveItems, SetFaveItem, DeleteFaveItem, TransferItem, RefreshTokenView
+from .views import CustomUserCreate, BungieAuth, BungieProfile, GetFaveItems, SetFaveItem, DeleteFaveItem, TransferItem, RefreshTokenView, EquipItem
 
 app_name = 'users'
 
@@ -12,6 +12,7 @@ urlpatterns = [
     # guardians
     path('bungie/get/', BungieProfile.as_view(), name="get_bungie_profile"),
     path('bungie/post/transfer/', TransferItem.as_view(), name="transfer_item"),
+    path('bungie/post/equip/', EquipItem.as_view(), name='equip-item'),
     # faves
     path('faveItems/get', GetFaveItems.as_view(), name="get_faves"),
     path('faveItem/set', SetFaveItem.as_view(), name="set_fave"),
