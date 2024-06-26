@@ -1,5 +1,6 @@
 import base64
 import requests
+from typing import Dict, Any
 from .models import UserFaves, OAuthToken
 from datetime import timedelta
 from django.conf import settings
@@ -204,7 +205,7 @@ class BungieProfile(APIView):
         response_data = response.json()
 
         # Call the sync_user_faves function
-        profile_items = response_data.get('Response', {}).get('profileInventory', {}).get('data', {}).get('items', [])
+        profile_items = response_data.get('Response', {}).get('itemComponents', {}).get('instances', {}).get('data', [])
         sync_user_faves(user, profile_items)
 
         return Response(response_data, status=status.HTTP_200_OK)
@@ -327,9 +328,9 @@ class DeleteFaveItem(APIView):
         user_fave.delete()
         return Response({'message': 'Favorite item deleted'}, status=status.HTTP_200_OK)
 
-
-def sync_user_faves(user, profile_items):
-    user_faves = UserFaves.objects.filter(username=user)
+def sync_user_faves(user, profile_items: Dict[str, Any]):
+    user_faves = UserFaves.objects.filter(username=user)    
+    item_instance_ids = set(profile_items.keys())
     for fave in user_faves:
-        if not any(item.get('itemInstanceId') == fave.itemInstanceId for item in profile_items):
+        if str(fave.itemInstanceId) not in item_instance_ids:
             fave.delete()
