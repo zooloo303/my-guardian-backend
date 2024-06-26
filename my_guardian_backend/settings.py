@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'users',
+    'armor_maxx',
 ]
 
 MIDDLEWARE = [
@@ -153,6 +154,7 @@ AUTHENTICATION_BACKENDS = (
 SOCIAL_AUTH_BUNGIE_API_KEY = os.environ.get("BUNGIE_API_KEY")
 SOCIAL_AUTH_BUNGIE_KEY = os.environ.get("CLIENT_ID")
 SOCIAL_AUTH_BUNGIE_SECRET = os.environ.get("CLIENT_SECRET")
+ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
 
 # Custom user model
 AUTH_USER_MODEL = "users.NewUser"
