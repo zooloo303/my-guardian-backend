@@ -161,26 +161,16 @@ AUTH_USER_MODEL = "users.NewUser"
 
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': True,
+    'disable_existing_loggers': False,
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
         },
     },
-    'root': {
-        'handlers': ['console'],
-        'level': 'DEBUG',
-    },
     'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'armor_maxx': {
+        'armor_maxx.views': {
             'handlers': ['console'],
             'level': 'DEBUG',
-            'propagate': False,
         },
     },
 }
