@@ -58,15 +58,12 @@ class OptimizeArmor(APIView):
         prompt = self.prepare_claude_prompt(armor_data, fragment_data, armor_mod_data, exotic_id, stat_priorities, chat_input, subclass_id)
 
         # Call Claude API
-        try:
-            response = self.call_claude_api(prompt)
-        except Exception as e:
-            return Response({'error': 'Error generating optimization suggestion'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        claude_response = self.call_claude_api(prompt)
+        response = self.call_claude_api(prompt)
+        claude_response = response.content[0].text
         logger.info(f"Claude's response details: {claude_response}")
+
         # Parse and enhance Claude's response
-        enhanced_response = self.enhance_response(claude_response.completion)
+        enhanced_response = self.enhance_response(claude_response)
         logger.info(f"Enhanced response: {enhanced_response}")
 
         if enhanced_response is None:
@@ -97,6 +94,9 @@ class OptimizeArmor(APIView):
             # Extract the JSON string
             json_str = json_match.group(1)
             logger.debug(f"Extracted JSON string: {json_str}")
+
+            # Clean the JSON string
+            json_str = re.sub(r'[\x00-\x1F\x7F-\x9F]', '', json_str)
 
             # Parse the JSON
             enhanced_response = json.loads(json_str)
@@ -430,13 +430,32 @@ class OptimizeArmor(APIView):
         ```json
         {{
             "armor_pieces": [
-                {{
-                    "type": "Helmet",
-                    "instanceId": "item_instance_id",
-                    "name": "Item Name"
-                }},
-                // ... other armor pieces
-            ],
+            {{
+                "type": "Helmet",
+                "instanceId": "item_instance_id",
+                "name": "Item Name"
+            }},
+            {{
+                "type": "Gauntlets",
+                "instanceId": "item_instance_id",
+                "name": "Item Name"
+            }},
+            {{
+                "type": "Chest Armor",
+                "instanceId": "item_instance_id",
+                "name": "Item Name"
+            }},
+            {{
+                "type": "Leg Armor",
+                "instanceId": "item_instance_id",
+                "name": "Item Name"
+            }},
+            {{
+                "type": "Class Item",
+                "instanceId": "item_instance_id",
+                "name": "Item Name"
+            }}
+        ],
             "fragments": [
                 {{
                     "name": "Fragment Name"
@@ -448,7 +467,7 @@ class OptimizeArmor(APIView):
                     "slot": "Helmet",
                     "name": "Mod Name"
                 }},
-                // ... other mods
+                // ... other mods (including one for Class Item)
             ],
             "total_stats": {{
                 "mobility": 0,
@@ -477,10 +496,11 @@ class OptimizeArmor(APIView):
 
     def call_claude_api(self, prompt):
         anthropic = Anthropic(api_key=settings.ANTHROPIC_API_KEY)
-        return anthropic.completions.create(
-            model="claude-2",
-            prompt=prompt,
-            max_tokens_to_sample=1000,
+        return anthropic.messages.create(
+            model="claude-3-haiku-20240307",
+            max_tokens=1000,
+            messages=[
+                {"role": "user", "content": prompt}
+            ]
         )
-
    

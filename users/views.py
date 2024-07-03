@@ -291,6 +291,45 @@ class EquipItem(APIView):
             return Response(response.json(), status=status.HTTP_400_BAD_REQUEST)
 
 
+class EquipItems(APIView):
+    def post(self, request, *args, **kwargs):
+        if not is_destiny_api_enabled():
+            return Response({'error': 'Destiny 2 API is currently disabled for maintenance'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+        username = request.data.get('username')
+        itemIds = request.data.get('itemIds', [])
+        characterId = request.data.get('characterId')
+        membershipType = request.data.get('membershipType')
+
+        if not username or not itemIds or not characterId or not membershipType:
+            return Response({'error': 'All fields are required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not isinstance(itemIds, list):
+            return Response({'error': 'itemIds must be an array'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            access_token = refresh_bungie_token(username)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        headers = {
+            'X-API-Key': settings.SOCIAL_AUTH_BUNGIE_API_KEY,
+            'Authorization': f'Bearer {access_token}',
+        }
+
+        body = {
+            'itemIds': itemIds,  # Use itemIds directly, no need for list comprehension
+            'characterId': characterId,
+            'membershipType': membershipType,
+        }
+
+        response = requests.post('https://www.bungie.net/Platform/Destiny2/Actions/Items/EquipItems/', headers=headers, json=body)
+
+        if response.status_code == 200:
+            return Response(response.json(), status=status.HTTP_200_OK)
+        else:
+            return Response(response.json(), status=status.HTTP_400_BAD_REQUEST)
+        
 
 class GetFaveItems(APIView):
     def get(self, request, *args, **kwargs):
