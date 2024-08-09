@@ -1,4 +1,5 @@
 import base64
+from django.db import IntegrityError
 import requests
 from typing import Dict, Any
 from .models import UserFaves, OAuthToken
@@ -349,10 +350,15 @@ class GetFaveItems(APIView):
 
 class SetFaveItem(APIView):
     def post(self, request, *args, **kwargs):
+        print(f"Received SetFaveItem request: {request.data}")
         serializer = UserFavesSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            try:
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            except IntegrityError:
+                # Item is already favorited, return success
+                return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

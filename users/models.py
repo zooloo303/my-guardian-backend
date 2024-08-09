@@ -63,5 +63,8 @@ class OAuthToken(models.Model):
 
 class UserFaves(models.Model):
     username = models.ForeignKey(NewUser, on_delete=models.CASCADE)
-    itemInstanceId = models.CharField(max_length=255, unique=True)
+    itemInstanceId = models.CharField(max_length=255)
     itemHash = models.IntegerField()
+
+    class Meta:
+        unique_together = ('username', 'itemInstanceId')

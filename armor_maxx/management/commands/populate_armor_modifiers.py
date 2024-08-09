@@ -8,8 +8,17 @@ class Command(BaseCommand):
     help = 'Fetches mod data from Bungie API and populates the ArmorModifier table'
 
     def handle(self, *args, **options):
-        destiny_item_defs_url = "http://www.bungie.net/common/destiny2_content/json/en/DestinyInventoryItemDefinition-c2aab5db-09a6-4170-85dd-91599475546b.json"
-        destiny_stat_defs_url = "http://www.bungie.net/common/destiny2_content/json/en/DestinyStatDefinition-c2aab5db-09a6-4170-85dd-91599475546b.json"
+        base_url = "https://www.bungie.net"
+        manifest_url = f"{base_url}/Platform/Destiny2/Manifest/"
+
+        # Fetch the manifest
+        self.stdout.write("Fetching Destiny 2 manifest...")
+        response_manifest = requests.get(manifest_url)
+        manifest = response_manifest.json()
+
+        # Get the URLs for item and stat definitions
+        destiny_item_defs_url = f"{base_url}{manifest['Response']['jsonWorldComponentContentPaths']['en']['DestinyInventoryItemDefinition']}"
+        destiny_stat_defs_url = f"{base_url}{manifest['Response']['jsonWorldComponentContentPaths']['en']['DestinyStatDefinition']}"
 
         # Fetch the JSON data from the URLs
         self.stdout.write("Fetching item definitions...")
